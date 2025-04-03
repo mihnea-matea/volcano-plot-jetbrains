@@ -28,5 +28,23 @@ def get_volcano_data():
 
     return jsonify(volcano_data)
 
+@app.route("/api/boxplot-data/<gene_name>")
+def get_boxplot_data(gene_name):
+    gene_data = S4A_df[S4A_df["EntrezGeneSymbol"] == gene_name]
+    
+    all_columns = S4A_df.columns.tolist()
+    start_index = all_columns.index("Set002.H4.OD12.dup")
+    donor_columns = all_columns[start_index:]
+    old_columns = [col for col in donor_columns if "OD" in str(col)]
+    young_columns = [col for col in donor_columns if "YD" in str(col)]
+    old_values = gene_data[old_columns].values.flatten().tolist()
+    young_values = gene_data[young_columns].values.flatten().tolist()
+
+    return jsonify({
+        "gene": gene_name,
+        "young": young_values,
+        "old": old_values
+    })
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -7,10 +7,42 @@
 </head>
 <body>
 	<h1>Volcano Plot</h1>
-
 	<div id="volcanoPlot" style="width:800px; height:600px;"></div>
 
+    <h2>Boxplot</h2>
+    <div id="boxplot" style="width:800px; height:500px;"></div>
+
 	<script>
+        async function loadBoxplot(geneName) {
+            const response = await fetch(`/api/boxplot-data/${geneName}`);
+            const data = await response.json();
+
+            const yValues = [];
+            const xLabels = [];
+            for (let i = 0; i < data.young.length; i++) {
+            yValues.push(data.young[i]);
+            xLabels.push("young");
+            }
+            for (let i = 0; i < data.old.length; i++) {
+            yValues.push(data.old[i]);
+            xLabels.push("old");
+}
+
+            const boxTrace = {
+            y: yValues,
+            x: xLabels,
+            type: "box",    
+            name: geneName
+            };
+
+            const layout = {
+            title: `Expression of ${geneName} in Young vs Old`,
+            yaxis: { title: "Expression Level" }
+            };
+
+            Plotly.newPlot("boxplot", [boxTrace], layout);
+        }
+    
 		async function loadVolcanoPlot() {
 			try {
 				const response = await fetch("/api/volcano-data");
@@ -37,7 +69,12 @@
 
 				Plotly.newPlot("volcanoPlot", [trace], layout);
 
-                
+                const plot = document.getElementById("volcanoPlot");
+                plot.on("plotly_click", async function(event) {
+                const clickedGene = event.points[0].text;
+                console.log("User clicked gene:", clickedGene);
+                await loadBoxplot(clickedGene);
+                });
 			} catch (error) {
 				console.error("Couldn't load plot:", error);
 			}
