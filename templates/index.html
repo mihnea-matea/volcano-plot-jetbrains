@@ -2,9 +2,48 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Volcano</title>
+	<title>Volcano Plot</title>
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-	<h1>This will be volcano plot</h1>
+	<h1>Volcano Plot</h1>
+
+	<div id="volcanoPlot" style="width:800px; height:600px;"></div>
+
+	<script>
+		async function loadVolcanoPlot() {
+			try {
+				const response = await fetch("/api/volcano-data");
+				const data = await response.json();
+
+				const x = data.map(d => d.logFC);
+				const y = data.map(d => d.negLog10P);
+				const labels = data.map(d => d.gene);
+
+				const trace = {
+					x: x,
+					y: y,
+					text: labels,
+					mode: "markers",
+					type: "scatter",
+					marker: { size: 6 }
+				};
+
+				const layout = {
+					title: "Volcano Plot",
+					xaxis: { title: "logFC" },
+					yaxis: { title: "-log10(adj.P.Val)" }
+				};
+
+				Plotly.newPlot("volcanoPlot", [trace], layout);
+
+                
+			} catch (error) {
+				console.error("Couldn't load plot:", error);
+			}
+		}
+
+		loadVolcanoPlot();
+	</script>
 </body>
 </html>
