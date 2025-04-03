@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, jsonify
 import pandas
 
 app = Flask(__name__)
@@ -10,7 +10,22 @@ S4A_df = pandas.read_excel(excel_file, sheet_name="S4A values", skiprows = 2)
 
 @app.route("/")
 def index():
-    return "My name is Mihnea"
+    return render_template("index.html")
+
+@app.route("/api/volcano-data")
+def get_volcano_data():
+    S4B_df["negLog10P"] = -np.log10(S4B_df["adj.P.Val"]) # this is for 0.01 significance metric 
+
+    volcano_data = []
+    for i, row in S4B_df.iterrows():
+        entry = {
+            "gene": row["EntrezGeneSymbol"],
+            "logFC": row["logFC"],
+            "negLog10P": row["negLog10P"]
+        }
+        volcano_data.append(entry)
+
+    return jsonify(volcano_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
