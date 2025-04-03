@@ -12,6 +12,9 @@
     <h2>Boxplot</h2>
     <div id="boxplot" style="width:800px; height:500px;"></div>
 
+    <h2>Related Scientific Papers</h2>
+    <ul id="papers"></ul>
+
 	<script>
         async function loadBoxplot(geneName) {
             const response = await fetch(`/api/boxplot-data/${geneName}`);
@@ -26,7 +29,7 @@
             for (let i = 0; i < data.old.length; i++) {
             yValues.push(data.old[i]);
             xLabels.push("old");
-}
+            }
 
             const boxTrace = {
             y: yValues,
@@ -43,6 +46,29 @@
             Plotly.newPlot("boxplot", [boxTrace], layout);
         }
     
+        async function loadGenePapers(geneName) {
+            const response = await fetch(`/api/gene-info/${geneName}`);
+            const data = await response.json();
+
+            const paperList = document.getElementById("papers");
+            paperList.innerHTML = "";
+
+            if (!data.papers || data.papers.length === 0) {
+                paperList.innerHTML = "<li>No related papers found.</li>";
+                return;
+            }
+
+            data.papers.forEach(paper => {
+                const li = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = paper.url;
+                link.textContent = paper.title;
+                link.target = "_blank";
+                li.appendChild(link);
+                paperList.appendChild(li);
+            });
+        }
+
 		async function loadVolcanoPlot() {
 			try {
 				const response = await fetch("/api/volcano-data");
@@ -74,6 +100,7 @@
                 const clickedGene = event.points[0].text;
                 console.log("User clicked gene:", clickedGene);
                 await loadBoxplot(clickedGene);
+                await loadGenePapers(clickedGene);
                 });
 			} catch (error) {
 				console.error("Couldn't load plot:", error);
